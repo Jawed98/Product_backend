@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Catalog</title>
+<style>
+  :root {
+    --ink: #1a1d1f;
+    --ink-soft: #5b6166;
+    --line: #e3e1dc;
+    --paper: #fbfaf7;
+    --accent: #b5491f;
+    --accent-soft: #f3e6de;
+    --mono: "IBM Plex Mono", "SF Mono", Consolas, monospace;
+    --sans: "IBM Plex Sans", -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+  }
+
+  header {
+    border-bottom: 1px solid var(--line);
+    padding: 20px 28px 16px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  header h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  header .sub {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .controls {
+    display: flex;
+    gap: 28px;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--line);
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .field label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+
+  select {
+    font-family: var(--sans);
+    font-size: 13px;
+    padding: 7px 10px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    background: white;
+    color: var(--ink);
+    min-width: 200px;
+  }
+
+  .stat {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-left: auto;
+  }
+
+  .stat strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-soft);
+    padding: 10px 28px;
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    background: var(--paper);
+  }
+
+  tbody td {
+    padding: 11px 28px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+
+  tbody tr:hover {
+    background: #f4f2ed;
+  }
+
+  .id-cell {
+    font-family: var(--mono);
+    color: var(--ink-soft);
+    font-size: 12px;
+  }
+
+  .name-cell {
+    font-weight: 500;
+  }
+
+  .cat-pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 2px;
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .price-cell {
+    font-family: var(--mono);
+    font-weight: 500;
+  }
+
+  .time-cell {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .pager {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 28px 32px;
+  }
+
+  button {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 16px;
+    border: 1px solid var(--ink);
+    border-radius: 3px;
+    background: var(--ink);
+    color: var(--paper);
+    cursor: pointer;
+  }
+
+  button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  button.ghost {
+    background: transparent;
+    color: var(--ink);
+  }
+
+  .empty, .loading {
+    padding: 48px 28px;
+    text-align: center;
+    color: var(--ink-soft);
+    font-family: var(--mono);
+    font-size: 12px;
+  }
+
+  .error-banner {
+    margin: 16px 28px 0;
+    padding: 10px 14px;
+    background: #fdeceb;
+    border: 1px solid #e7a39a;
+    border-radius: 3px;
+    color: #8a2f24;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Product Catalog</h1>
+    <div class="sub">200,000 SKUs · keyset pagination</div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="field">
+    <label for="category-select">Category</label>
+    <select id="category-select">
+      <option value="">All categories</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="limit-select">Page size</label>
+    <select id="limit-select">
+      <option value="10">10</option>
+      <option value="20" selected>20</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+  </div>
+  <div class="stat" id="stat-line"></div>
+</div>
+
+<div id="content">
+  <div class="loading">Loading products…</div>
+</div>
+
+<script>
+  const state = {
+    category: '',
+    limit: 20,
+    cursorStack: [null], // cursorStack[i] = cursor used to fetch page i (null = first page)
+    pageIndex: 0,
+    currentData: null,
+  };
+
+  const categorySelect = document.getElementById('category-select');
+  const limitSelect = document.getElementById('limit-select');
+  const content = document.getElementById('content');
+  const statLine = document.getElementById('stat-line');
+
+  function formatPrice(n) {
+    return '$' + n.toFixed(2);
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso);
+    return d.toISOString().slice(0, 16).replace('T', ' ');
+  }
+
+  async function loadCategories() {
+    try {
+      const res = await fetch('/categories');
+      const json = await res.json();
+      for (const cat of json.categories) {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        categorySelect.appendChild(opt);
+      }
+    } catch (e) {
+      console.error('Failed to load categories', e);
+    }
+  }
+
+  async function fetchPage(cursor) {
+    const params = new URLSearchParams();
+    if (state.category) params.set('category', state.category);
+    if (cursor) params.set('cursor', cursor);
+    params.set('limit', state.limit);
+
+    const res = await fetch('/products?' + params.toString());
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || ('Request failed with status ' + res.status));
+    }
+    return res.json();
+  }
+
+  function renderTable(json) {
+    if (json.data.length === 0) {
+      content.innerHTML = '<div class="empty">No products found for this filter.</div>';
+      return;
+    }
+
+    const rows = json.data.map(p => `
+      <tr>
+        <td class="id-cell">#${p.id}</td>
+        <td class="name-cell">${escapeHtml(p.name)}</td>
+        <td><span class="cat-pill">${escapeHtml(p.category)}</span></td>
+        <td class="price-cell">${formatPrice(p.price)}</td>
+        <td class="time-cell">${formatDate(p.createdAt)}</td>
+      </tr>
+    `).join('');
+
+    content.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="pager">
+        <button class="ghost" id="prev-btn" ${state.pageIndex === 0 ? 'disabled' : ''}>← Previous</button>
+        <button id="next-btn" ${json.hasNextPage ? '' : 'disabled'}>Next →</button>
+        <span class="stat">Page ${state.pageIndex + 1}</span>
+      </div>
+    `;
+
+    document.getElementById('prev-btn').addEventListener('click', goPrev);
+    document.getElementById('next-btn').addEventListener('click', goNext);
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function loadPage(pageIndex) {
+    content.innerHTML = '<div class="loading">Loading products…</div>';
+    statLine.textContent = '';
+    try {
+      const cursor = state.cursorStack[pageIndex];
+      const json = await fetchPage(cursor);
+      state.currentData = json;
+      state.pageIndex = pageIndex;
+
+      // store the cursor for the NEXT page if we don't already have it
+      if (json.nextCursor && state.cursorStack.length === pageIndex + 1) {
+        state.cursorStack.push(json.nextCursor);
+      }
+
+      renderTable(json);
+      statLine.textContent = `Showing ${json.data.length} item${json.data.length === 1 ? '' : 's'}`;
+    } catch (err) {
+      content.innerHTML = `<div class="error-banner">Couldn't load products: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  function goNext() {
+    loadPage(state.pageIndex + 1);
+  }
+
+  function goPrev() {
+    if (state.pageIndex > 0) loadPage(state.pageIndex - 1);
+  }
+
+  function resetAndLoad() {
+    state.cursorStack = [null];
+    state.pageIndex = 0;
+    loadPage(0);
+  }
+
+  categorySelect.addEventListener('change', () => {
+    state.category = categorySelect.value;
+    resetAndLoad();
+  });
+
+  limitSelect.addEventListener('change', () => {
+    state.limit = parseInt(limitSelect.value, 10);
+    resetAndLoad();
+  });
+
+  loadCategories();
+  loadPage(0);
+</script>
+
+</body>
+</html>
